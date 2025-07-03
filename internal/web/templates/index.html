@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twitch Live Streams</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Top Live Streams</h1>
+    {{range .}}
+        <div class="stream">
+            <h2>{{.UserName}}</h2>
+            <p>{{.Title}}</p>
+            <p><strong>Viewers:</strong> {{.ViewerCount}}</p>
+            <img src="{{.ThumbnailURL}}" alt="Thumbnail" width="320">
+        </div>
+    {{end}}
+</body>
+</html>
