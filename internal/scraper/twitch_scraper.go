@@ -16,8 +16,9 @@ func ScrapeTwitchBrowse() error {
 		streamer := e.ChildText("p.ScThumbnailCardInfo-username")
 		title := e.ChildText("h3.ScThumbnailCardInfo-title")
 		viewer_count := e.ChildText("p.ScThumbnailCardInfo-viewers")
+		category := e.ChildText("p.ScThumbnailCardInfo-gameName")
 
-		fmt.Printf("Streamer: %s, Title: %s, Viewers: %s\n", streamer, title, viewer_count)
+		fmt.Printf("Streamer: %s, Title: %s, Category: %s, Viewers: %s\n", streamer, title, category, viewer_count)
 	})
 
 	c.OnRequest(func(r *colly.Request) {
