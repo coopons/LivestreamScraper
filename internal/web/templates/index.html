@@ -6,26 +6,32 @@
     <link rel="stylesheet" href="/static/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
     <div id="controls">
         <p id="statusText">Next collection in: <span id="countdown">---</span></p>
-        <button onclick="control('start')">▶ Start</button>
-        <button onclick="control('pause')">⏸ Pause</button>
-        <button onclick="control('resume')">⏵ Resume</button>
-        <button onclick="control('stop')">⏹ Stop</button>
+        <div id="collectorControls">
+            <button onclick="control('start')">▶ Start</button>
+            <button onclick="control('stop')">⏹ Stop</button>
+        </div>
+    </div>
+    <div id="dbInfo">
+        <p>Streams:</p>
+        <p></p>
     </div>
     
     <h1>Top Live Streams</h1>
     {{range .}}
         <button class="stream"
-                data-stream-id="{{.ID}}"
-                data-streamer="{{.UserName}}">
+        data-stream-id="{{.ID}}"
+        data-streamer="{{.UserName}}">
             <h2>{{.UserName}}</h2>
             <p class="streamTitle">{{.Title}}</p>
             <p><strong>Viewers:</strong> {{.ViewerCount}}</p>
             <img src="{{.ThumbnailURL}}" alt="Thumbnail" width="320">
         </button>
     {{end}}
+
     <div id="streamModal" class="modal hidden">
         <div class="modal-content">
             <span id="closeModal">&times;</span>
@@ -33,8 +39,9 @@
             <canvas id="modalChart" width="800" height="400"></canvas>
         </div>
     </div>
+
     <h1>Livestream Viewer Count</h1>
     <canvas id="viewersChart" width="800" height="400"></canvas>
-    <script src="/static/script.js"></script>
+    <script src="/static/script.js"></script> -
 </body>
 </html>

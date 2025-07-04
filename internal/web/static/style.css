@@ -42,11 +42,9 @@ button.stream:active {
   align-items: center;
   cursor: pointer;
 }
-
 .modal.hidden {
   display: none;
 }
-
 .modal-content {
   background-color: #fff;
   padding: 20px;
@@ -55,11 +53,26 @@ button.stream:active {
   position: relative;
   cursor: default;
 }
-
 #closeModal {
   position: absolute;
   top: 10px;
   right: 15px;
   font-size: 24px;
   cursor: pointer;
+}
+
+#controls {
+  margin: 20px 0;
+  padding: 10px;
+  background: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+#collectorControls button {
+  margin: 4px;
+  padding: 6px 12px;
+  font-size: 14px;
 }

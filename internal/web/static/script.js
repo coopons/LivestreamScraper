@@ -76,20 +76,22 @@ function updateCountdown() {
     fetch(`/api/next-run`)
     .then(res => res.json())
     .then(data => {
-      const next = new Date(data.next_run);
-      const now = new Date();
-      const diff = next - now;
+        if (!data.running) {
+            document.getElementById("countdown").textContent = "⏹ Collector is stopped.";
+            return;
+        }
 
-      if (data.paused) {
-        document.getElementById("statusText").textContent = "⏸ Collector is paused.";
-      } else if (diff > 0) {
-        const mins = Math.floor(diff / 60000);
-        const secs = Math.floor((diff % 60000) / 1000);
-        document.getElementById("countdown").textContent = `${mins}m ${secs}s`;
-        document.getElementById("statusText").textContent = "Next run in: " + document.getElementById("countdown").textContent;
-      } else {
-        document.getElementById("countdown").textContent = "Running...";
-      }
+        const next = new Date(data.next_run);
+        const now = new Date();
+        const diff = next - now;
+
+        if (diff > 100) { // 100 ms buffer
+            const mins = Math.floor(diff / 60000);
+            const secs = Math.floor((diff % 60000) / 1000);
+            document.getElementById("countdown").textContent = `${mins}m ${secs}s`;
+        } else {
+            document.getElementById("countdown").textContent = "⏳ Collecting now...";
+        }
     });
 }
 

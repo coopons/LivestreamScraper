@@ -75,16 +75,14 @@ func SnapshotDataHandler(w http.ResponseWriter, r *http.Request) {
 
 func ControlHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.URL.Query().Get("action") {
-	case "pause":
-		pauseCollector()
-	case "resume":
-		resumeCollector()
 	case "stop":
 		stopCollector()
 	case "start":
 		clientID := os.Getenv("TWITCH_CLIENT_ID")
 		clientSecret := os.Getenv("TWITCH_CLIENT_SECRET")
 		StartCollector(clientID, clientSecret, 10*time.Minute)
+	default: 
+		log.Println("Unknown action:", r.URL.Query().Get("action"))
 	}
 	w.WriteHeader(http.StatusOK)
 }
@@ -92,11 +90,17 @@ func ControlHandler(w http.ResponseWriter, r *http.Request) {
 func NextRunHandler(w http.ResponseWriter, r *http.Request) {
 	type Response struct {
 		NextRun string  `json:"next_run"`
-		Paused	bool	`json:"paused"`
+		Running	bool	`json:"running"`
 	}
+	
+	if nextRunTime.IsZero() {
+	nextRunTime = time.Now().Add(tickerInterval)
+	}
+	
 	resp := Response{
 		NextRun: nextRunTime.Format(time.RFC3339),
-		Paused:  tickerPaused,
+		Running: collectorRunning,
 	}
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }

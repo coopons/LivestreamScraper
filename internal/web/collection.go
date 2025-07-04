@@ -11,27 +11,36 @@ import (
 var (
 	ticker		 *time.Ticker
 	tickerStop	 chan bool
-	tickerPaused bool
 	nextRunTime	 time.Time
 	tickerInterval time.Duration
+	collectorRunning bool
 )
 
 func StartCollector(clientID, clientSecret string, interval time.Duration) {
+	if collectorRunning {
+		log.Println("Collector is already running.")
+		return
+	}
 	if ticker != nil {
 		ticker.Stop()
 	}
+	if tickerStop != nil {
+		select {
+		case tickerStop <- true:
+		default:
+		}
+	}
+
 	tickerStop = make(chan bool)
 	ticker = time.NewTicker(interval)
 	tickerInterval = interval
-	tickerPaused = false
+	nextRunTime = time.Now().Add(tickerInterval)
+	collectorRunning = true
 
 	go func() {
 		for {
 			select {
 			case <-ticker.C:
-				if tickerPaused {
-					continue
-				}
 				nextRunTime = time.Now().Add(tickerInterval)
 				err := runCollection(clientID, clientSecret)
 				if err != nil {
@@ -39,7 +48,7 @@ func StartCollector(clientID, clientSecret string, interval time.Duration) {
 				}
 			case <-tickerStop:
 				ticker.Stop()
-				log.Println("Collector stopped.")
+				collectorRunning = false
 				return
 			}
 		}
@@ -47,7 +56,6 @@ func StartCollector(clientID, clientSecret string, interval time.Duration) {
 }
 
 func runCollection(clientID, clientSecret string) error {
-	log.Println("Running Collection...")
 	token, err := api.GetAppAccessToken(clientID, clientSecret)
 	if err != nil {
 		return err
@@ -69,19 +77,12 @@ func runCollection(clientID, clientSecret string) error {
 	return nil
 }
 
-func pauseCollector() {
-	tickerPaused = true
-	log.Println("Collector paused.")
-}
-
-func resumeCollector() {
-	tickerPaused = false
-	log.Println("Collector resumed.")
-	nextRunTime = time.Now().Add(tickerInterval)
-}
-
 func stopCollector() {
 	if tickerStop != nil {
-		tickerStop <- true
+		select {
+		case tickerStop <- true:
+		default:
+		}
 	}
+	collectorRunning = false
 }
