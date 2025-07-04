@@ -55,11 +55,33 @@ func SnapshotDataHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer rows.Close()
 
+	var streamerName string
+	err = db.Pool.QueryRow(context.Background(),
+		`SELECT streamer_name FROM streams WHERE stream_id = $1`, streamID).Scan(&streamerName)
+	if err != nil {
+		http.Error(w, "Could not find streamer", http.StatusInternalServerError)
+		return
+	}
+
+	var numStreams int
+	err = db.Pool.QueryRow(context.Background(),
+		`SELECT COUNT(*) FROM streams WHERE streamer_name = $1`, streamerName).Scan(&numStreams)
+	if err != nil {
+		http.Error(w, "Error counting streams", http.StatusInternalServerError)
+		return
+	}
+
 	type Point struct {
 		StreamID 	string	 	`json:"stream_id"`
 		ViewerCount	int			`json:"viewer_count"`
 		Timestamp	time.Time	`json:"timestamp"`
 	}
+
+	type Response struct {
+	NumStreams int     `json:"num_streams"`
+	Snapshots  []Point `json:"snapshots"`
+	}
+
 	var points []Point
 
 	for rows.Next() {
@@ -69,8 +91,13 @@ func SnapshotDataHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	response := Response{
+		NumStreams: numStreams,
+		Snapshots: points,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(points)
+	json.NewEncoder(w).Encode(response)
 }
 
 func ControlHandler(w http.ResponseWriter, r *http.Request) {

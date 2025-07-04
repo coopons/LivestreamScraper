@@ -49,7 +49,7 @@ func StartCollector(clientID, clientSecret string, interval time.Duration) {
 			case <-tickerStop:
 				ticker.Stop()
 				collectorRunning = false
-				return
+ 				return
 			}
 		}
 	}()

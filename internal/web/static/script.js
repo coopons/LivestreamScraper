@@ -11,10 +11,15 @@ document.querySelectorAll(".stream").forEach(btn => {
         fetch(`/api/snapshots?stream_id=${streamId}`)
             .then(res => res.json())
             .then(data => {
-                const timestamps = data.map(p =>
+                const numStreams = data.num_streams;
+                const snapshots = data.snapshots;
+
+                if (snapshots.length === 0) return;
+
+                const timestamps = snapshots.map(p =>
                     new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 );
-                const counts = data.map(p => p.viewer_count);
+                const counts = snapshots.map(p => p.viewer_count);
 
                 if (chartInstance) {
                     chartInstance.destroy();
@@ -26,7 +31,7 @@ document.querySelectorAll(".stream").forEach(btn => {
                     data: {
                         labels: timestamps,
                         datasets: [{
-                        label: `${streamer}'s Logged Viewer Count`,
+                        label: `${streamer}'s Logged Viewer Count (Total Streams: ${numStreams})`,
                         data: counts,
                         borderColor: "rgba(75, 192, 192, 1)",
                         fill: false
