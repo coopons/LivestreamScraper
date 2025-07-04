@@ -36,9 +36,19 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SnapshotDataHandler(w http.ResponseWriter, r *http.Request) {
+	streamID := r.URL.Query().Get("stream_id")
+	if streamID == "" {
+		http.Error(w, "Missing stream_id", http.StatusBadRequest)
+		return
+	}
+
 	rows, err := db.Pool.Query(context.Background(),
-		`SELECT stream_id, viewer_count, timestamp FROM stream_snapshots
-		ORDER BY timestamp ASC LIMIT 1000`)
+		`SELECT stream_id, viewer_count, timestamp
+		FROM stream_snapshots
+		WHERE stream_id = $1
+		ORDER BY timestamp ASC
+		LIMIT 1000`, streamID)
+
 	if err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
@@ -61,4 +71,32 @@ func SnapshotDataHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(points)
+}
+
+func ControlHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.URL.Query().Get("action") {
+	case "pause":
+		pauseCollector()
+	case "resume":
+		resumeCollector()
+	case "stop":
+		stopCollector()
+	case "start":
+		clientID := os.Getenv("TWITCH_CLIENT_ID")
+		clientSecret := os.Getenv("TWITCH_CLIENT_SECRET")
+		StartCollector(clientID, clientSecret, 10*time.Minute)
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+func NextRunHandler(w http.ResponseWriter, r *http.Request) {
+	type Response struct {
+		NextRun string  `json:"next_run"`
+		Paused	bool	`json:"paused"`
+	}
+	resp := Response{
+		NextRun: nextRunTime.Format(time.RFC3339),
+		Paused:  tickerPaused,
+	}
+	json.NewEncoder(w).Encode(resp)
 }

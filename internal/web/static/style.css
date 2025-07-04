@@ -3,10 +3,63 @@ body {
     padding: 2rem;
     background: #f4f4f4;
 }
-.stream {
-    background: white;
-    padding: 1rem;
-    margin: 1rem 0;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+
+button.stream {
+    background-color: #f0f0f0;      /* light gray background */
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin: 5px;
+    width: 350px;
+    text-align: left;
+}
+button.stream:hover {
+  background-color: #e0e0e0;      /* darker on hover */
+}
+button.stream:active {
+  background-color: #d0d0d0;      /* even darker on click */
+}
+
+.streamTitle {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: block;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  width: 850px;
+  border-radius: 8px;
+  position: relative;
+  cursor: default;
+}
+
+#closeModal {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  font-size: 24px;
+  cursor: pointer;
 }

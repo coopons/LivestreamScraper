@@ -1,43 +1,97 @@
-fetch("/api/snapshots")
-  .then(res => res.json())
-  .then(data => {
-    const streamId = data[0].stream_id;
-    const filtered = data.filter(p => p.stream_id === streamId);
+let chartInstance = null;
 
-    const timestamps = filtered.map(p =>
-      new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    );
-    const counts = filtered.map(p => p.viewer_count);
+document.querySelectorAll(".stream").forEach(btn => {
+    btn.addEventListener("click", () => {
+        const streamId = btn.getAttribute("data-stream-id")
+        const streamer = btn.getAttribute("data-streamer")
 
-    const ctx = document.getElementById("viewersChart").getContext("2d");
-    new Chart(ctx, {
-      type: "line",
-      data: {
-        labels: timestamps,
-        datasets: [{
-          label: `Viewer Count for Stream ${streamId}`,
-          data: counts,
-          borderColor: "rgba(75, 192, 192, 1)",
-          fill: false
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: false,
-            title: {
-              display: true,
-              text: "Viewers"
-            }
-          },
-          x: {
-            title: {
-              display: true,
-              text: "Time"
-            }
-          }
-        }
+        document.getElementById("modalTitle").textContent = `Viewer Count: ${streamer}`;
+        document.getElementById("streamModal").classList.remove("hidden");
+        
+        fetch(`/api/snapshots?stream_id=${streamId}`)
+            .then(res => res.json())
+            .then(data => {
+                const timestamps = data.map(p =>
+                    new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                );
+                const counts = data.map(p => p.viewer_count);
+
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+            
+                const ctx = document.getElementById("modalChart").getContext("2d")
+                chartInstance = new Chart(ctx, {
+                    type: "line",
+                    data: {
+                        labels: timestamps,
+                        datasets: [{
+                        label: `${streamer}'s Logged Viewer Count`,
+                        data: counts,
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        fill: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: false,
+                                title: {
+                                    display: true,
+                                    text: "Viewers"
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: "Time"
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+    });
+});
+
+// Modal closing
+const modal = document.getElementById("streamModal");
+const closeModal = document.getElementById("closeModal");
+
+closeModal.addEventListener("click", () => {
+    modal.classList.add("hidden");
+});
+window.addEventListener("click", (e) => {
+    if (e.target === modal) {
+        modal.classList.add("hidden");
+    }
+});
+
+function control(action) {
+    fetch(`/api/control?action=${action}`)
+}
+
+function updateCountdown() {
+    fetch(`/api/next-run`)
+    .then(res => res.json())
+    .then(data => {
+      const next = new Date(data.next_run);
+      const now = new Date();
+      const diff = next - now;
+
+      if (data.paused) {
+        document.getElementById("statusText").textContent = "⏸ Collector is paused.";
+      } else if (diff > 0) {
+        const mins = Math.floor(diff / 60000);
+        const secs = Math.floor((diff % 60000) / 1000);
+        document.getElementById("countdown").textContent = `${mins}m ${secs}s`;
+        document.getElementById("statusText").textContent = "Next run in: " + document.getElementById("countdown").textContent;
+      } else {
+        document.getElementById("countdown").textContent = "Running...";
       }
     });
-  });
+}
+
+setInterval(updateCountdown, 1000);
+updateCountdown();
