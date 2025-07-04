@@ -21,10 +21,16 @@ func main() {
 		log.Fatalf("Failed to get access token: %v", err)
 	}
 
-	streams, err := api.GetLiveStreams(clientID, token, 10)
+	// streams, err := api.GetLiveStreams(clientID, token, 10)
+	// if err != nil {
+	// 	log.Fatal("Failed to get live streams:", err)
+	// }
+	streams, err := api.GetAllLiveStreams(clientID, token, 250)
 	if err != nil {
-		log.Fatalf("Failed to get live streams: %v", err)
+		log.Fatal("Error getting all streams:", err)
 	}
+
+	fmt.Println("Total streams collected:", len(streams))
 
 	var streamTitles []string
 	for _, s := range streams {

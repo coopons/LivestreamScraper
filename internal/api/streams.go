@@ -31,7 +31,7 @@ type GetStreamsResponse struct {
 
 // Gets specified number of streams from twitch API
 func GetLiveStreams(clientID, accessToken string, first int) ([]Stream, error) {
-	url := fmt.Sprintf("https://api.twitch.tv/helix/streams?first=%d", first)
+	url := fmt.Sprintf("https://api.twitch.tv/helix/streams?type=live&first=%d", first)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
@@ -75,7 +75,7 @@ func GetAllLiveStreams(clientID, accessToken string, max int) ([]Stream, error) 
 		if len(allStreams) >= max {
 			break
 		}
-		url := fmt.Sprintf("https://api.twitch.tv/helix/streams?first=%d", pageSize)
+		url := fmt.Sprintf("https://api.twitch.tv/helix/streams?type=live&first=%d", pageSize)
 		if cursor != "" {
 			url += "&after=" + cursor
 		}
