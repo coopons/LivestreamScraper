@@ -5,32 +5,19 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+
+	"github.com/coopons/livestream_scraper/internal/model"
 )
 
-// Data parsed from the twitch api curl
-type Stream struct {
-	ID 				string `json:"id"`
-	UserID 			string `json:"user_id"`
-	UserName 		string `json:"user_name"`
-	Title 			string `json:"title"`
-	GameID 			string `json:"game_id"`
-	GameName 		string `json:"game_name"`
-	Language 		string `json:"language"`
-	ViewerCount 	int    `json:"viewer_count"`
-	StartedAt 		string `json:"started_at"`
-	ThumbnailURL 	string `json:"thumbnail_url"`
-	IsMature 		bool   `json:"is_mature"`
-}
-
 type GetStreamsResponse struct {
-	Data []Stream `json:"data"`
+	Data []model.Stream `json:"data"`
 	Pagination struct {
 		Cursor string `json:"cursor"`
 	} `json:"pagination"`
 }
 
 // Gets specified number of streams from twitch API
-func GetLiveStreams(clientID, accessToken string, first int) ([]Stream, error) {
+func GetLiveStreams(clientID, accessToken string, first int) ([]model.Stream, error) {
 	url := fmt.Sprintf("https://api.twitch.tv/helix/streams?type=live&first=%d", first)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -65,8 +52,8 @@ func GetLiveStreams(clientID, accessToken string, first int) ([]Stream, error) {
 }
 
 // Continually requests streams from Twitch API until all streams are retrieved
-func GetAllLiveStreams(clientID, accessToken string, max int) ([]Stream, error) {
-	var allStreams []Stream
+func GetAllLiveStreams(clientID, accessToken string, max int) ([]model.Stream, error) {
+	var allStreams []model.Stream
 	cursor := ""
 	pageSize := 100
 	client := &http.Client{}

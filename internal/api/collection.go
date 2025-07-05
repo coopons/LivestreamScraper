@@ -1,18 +1,19 @@
-package web
+package api
 
 import (
 	"log"
+	"net/http"
+	"os"
 	"time"
 
-	"github.com/coopons/livestream_scraper/internal/api"
 	"github.com/coopons/livestream_scraper/internal/db"
 )
 
 var (
-	ticker		 *time.Ticker
-	tickerStop	 chan bool
-	nextRunTime	 time.Time
-	tickerInterval time.Duration
+	ticker			 *time.Ticker
+	tickerStop	 	 chan bool
+	nextRunTime	 	 time.Time
+	tickerInterval	 time.Duration
 	collectorRunning bool
 )
 
@@ -56,12 +57,12 @@ func StartCollector(clientID, clientSecret string, interval time.Duration) {
 }
 
 func runCollection(clientID, clientSecret string) error {
-	token, err := api.GetAppAccessToken(clientID, clientSecret)
+	token, err := GetAppAccessToken(clientID, clientSecret)
 	if err != nil {
 		return err
 	}
 
-	streams, err := api.GetAllLiveStreams(clientID, token, 200) // Only get top 200 streams to start out
+	streams, err := GetAllLiveStreams(clientID, token, 200) // Only get top 200 streams to start out
 	if err != nil {
 		return err
 	}
@@ -77,7 +78,7 @@ func runCollection(clientID, clientSecret string) error {
 	return nil
 }
 
-func stopCollector() {
+func StopCollector() {
 	if tickerStop != nil {
 		select {
 		case tickerStop <- true:
@@ -85,4 +86,18 @@ func stopCollector() {
 		}
 	}
 	collectorRunning = false
+}
+
+func ControlHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.URL.Query().Get("action") {
+	case "stop":
+		StopCollector()
+	case "start":
+		clientID := os.Getenv("TWITCH_CLIENT_ID")
+		clientSecret := os.Getenv("TWITCH_CLIENT_SECRET")
+		StartCollector(clientID, clientSecret, 5*time.Minute)
+	default: 
+		log.Println("Unknown action:", r.URL.Query().Get("action"))
+	}
+	w.WriteHeader(http.StatusOK)
 }

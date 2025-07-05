@@ -4,11 +4,11 @@ import (
 	"context"
 	"log"
 
-	"github.com/coopons/livestream_scraper/internal/api"
+	"github.com/coopons/livestream_scraper/internal/model"
 )
 
 // Saves the stream information in the DB
-func SaveStream(s api.Stream, platform string) error {
+func SaveStream(s model.Stream, platform string) error {
 	exists, err := StreamExists(platform, s.ID)
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func SaveStream(s api.Stream, platform string) error {
 }
 
 // Saves the relevant stream information as a snapshot
-func SaveSnapshot(s api.Stream) error {
+func SaveSnapshot(s model.Stream) error {
 	_, err := Pool.Exec(context.Background(),
 	`INSERT INTO stream_snapshots (stream_id, viewer_count, is_live)
 	VALUES ($1, $2, true)`,
