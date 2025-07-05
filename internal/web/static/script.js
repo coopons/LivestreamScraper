@@ -42,7 +42,7 @@ document.querySelectorAll(".stream").forEach(btn => {
 
         document.querySelectorAll(".stream").forEach(b => b.classList.remove("selected"));
         btn.classList.add("selected");
-        
+
         fetch(`/api/snapshots?stream_id=${streamId}`)
             .then(res => res.json())
             .then(data => {
@@ -50,9 +50,10 @@ document.querySelectorAll(".stream").forEach(btn => {
                 if (!data || data.length === 0) return;
                 
                 const stats = [];
+                const showOnlyMostRecent = !modalOpen;
+                const visibleStreams = window.lastVisibleStreams;
 
                 const datasets = data.map((streamData, idx) => {
-                    const color = colors[idx % colors.length];
                     const points = streamData.snapshots.map(p =>
                         chartMode === "time"
                         ? { x: new Date(p.timestamp), y: p.viewer_count }
@@ -61,7 +62,8 @@ document.querySelectorAll(".stream").forEach(btn => {
                             y: p.viewer_count
                         }
                     );
-
+                    
+                    const color = colors[idx % colors.length];
                     const avgViewers = Math.round(points.reduce((a, b) => a + b.y, 0) / points.length);
                     const start = new Date(streamData.snapshots[0].timestamp);
                     const end = new Date(streamData.snapshots[streamData.snapshots.length - 1].timestamp);
@@ -70,22 +72,24 @@ document.querySelectorAll(".stream").forEach(btn => {
                     const hours = Math.floor(durationMin / 60);
                     const minutes = durationMin % 60;
                     const durationFormatted = `${String(hours).padStart(2, ' ')}h:${String(minutes).padStart(2, ' ')}m`;
-
-                    stats.push({
-                        label: `Stream ${streamData.stream_id}`,
-                        avg: avgViewers,
-                        duration: durationFormatted,
-                        color: color
-                    });
+                    const hidden = 
+                        visibleStreams !== null && visibleStreams !== undefined
+                            ? !visibleStreams.has(streamData.stream_id)
+                            : idx !== 0;
 
                     return {
                         label: `Stream ${streamData.stream_id}`,
                         data: points,
                         borderColor: color,
                         fill: false,
-                        hidden: idx !== 0,
+                        hidden: hidden,
                         tension: 0.1,
-                        pointRadius: 2
+                        pointRadius: 2,
+                        _streamStats: {
+                            avg: avgViewers,
+                            duration: durationFormatted,
+                            color: color
+                        }
                     };
                 });
                     
@@ -96,7 +100,10 @@ document.querySelectorAll(".stream").forEach(btn => {
 
                 Chart.register(StreamStatsPlugin);
                 const maxViewerCount = Math.max(...datasets.flatMap(ds => ds.data.map(point => point.y)));
-                console.log(maxViewerCount)
+                const pluginStats = datasets
+                    .filter(ds => !ds.hidden && ds._streamStats)
+                    .map(ds => ds._streamStats);
+
                 const ctx = document.getElementById("modalChart").getContext("2d")
                 chartInstance = new Chart(ctx, {
                     type: "line",
@@ -105,12 +112,6 @@ document.querySelectorAll(".stream").forEach(btn => {
                     },
                     options: {
                         responsive: true,
-                        layout: {
-                            margin: {
-                                top: 40,
-                                right:150
-                            }
-                        },
                         interaction: {
                             mode: `nearest`,
                             axis: `x`,
@@ -126,19 +127,20 @@ document.querySelectorAll(".stream").forEach(btn => {
                                     const chart = legend.chart;
                                     const index = legendItem.datasetIndex;
                                     const dataset = chart.data.datasets[index];
+
                                     dataset.hidden = !dataset.hidden;
 
-                                    const annotationIndex = index + 1;
-                                    if (chart.data.datasets[annotationIndex]) {
-                                        chart.data.datasets[annotationIndex].datalabels.display = !dataset.hidden;
-                                    }
+                                    // Update stats to only visible ones
+                                    chart.options.plugins.streamStats.stats = chart.data.datasets
+                                        .filter(ds => !ds.hidden && ds._streamStats)
+                                        .map(ds => ds._streamStats);
 
                                     chart.update();
                                 }
                             },
                             streamStats: {
-                                stats: stats
-                            }
+                                stats: pluginStats
+                            },
                         },
                         scales: {
                             y: {
@@ -175,6 +177,7 @@ document.querySelectorAll(".stream").forEach(btn => {
                         stats: stats
                     }
                 });
+                modalOpen = true;
             });
     });
 });
@@ -186,18 +189,34 @@ const closeModal = document.getElementById("closeModal");
 if (closeModal && modal) {
     closeModal.addEventListener("click", () => {
         modal.classList.add("hidden");
+        window.lastVisibleStreams = null;
     });
     window.addEventListener("click", (e) => {
         if (e.target === modal) {
             modal.classList.add("hidden");
+            window.lastVisibleStreams = null;
         }
     });
+    modalOpen = false;
 }
 
 const toggleButton = document.getElementById("toggleDate")
 if (toggleButton) {
     toggleButton.addEventListener("click", () => {
+        if (chartInstance) {
+            const visibleStreams = new Set();
+            chartInstance.data.datasets.forEach(ds => {
+                if (!ds.hidden && ds.label.startsWith("Stream")) {
+                    const streamId = ds.label.split(" ")[1]; // "Stream xyz" -> "xyz"
+                    visibleStreams.add(streamId);
+                }
+            });
+            // Store in global for reuse with fetch()
+            window.lastVisibleStreams = visibleStreams;
+        }
+        
         chartMode = chartMode === "time" ? "category" : "time";
+
         const selected = document.querySelector(".stream.selected");
         if (selected) selected.click();
     });
