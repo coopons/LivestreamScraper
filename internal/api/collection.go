@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/coopons/livestream_scraper/internal/db"
+	"github.com/coopons/livestream_scraper/internal/scraper"
 )
 
 var (
@@ -57,24 +58,54 @@ func StartCollector(clientID, clientSecret string, interval time.Duration) {
 }
 
 func runCollection(clientID, clientSecret string) error {
+	// Prevent collection running too often during testing
+	latestSnapshot, err := db.GetLatestSnapshotTime()
+	if err != nil {
+		log.Println("Error getting latest snapshot:", err)
+	} else {
+		if time.Since(latestSnapshot) < 4*time.Minute {
+			log.Println("Skipping collection, last snapshot was less than 4 minutes ago")
+			return nil
+		}
+	}
+
+	// --- TWITCH ---
 	token, err := GetAppAccessToken(clientID, clientSecret)
 	if err != nil {
 		return err
 	}
 
-	streams, err := GetAllLiveStreams(clientID, token, 200) // Only get top 200 streams to start out
+	twitchStreams, err := GetAllLiveStreams(clientID, token, 200) // Only get top 200 streams to start out
 	if err != nil {
 		return err
 	}
 
-	for _, s := range streams {
+	for _, s := range twitchStreams {
 		if err := db.SaveStream(s, "twitch"); err != nil {
-			log.Println("SaveStream error:", err)
+			log.Println("SaveStream (twitch) error:", err)
 		}
 		if err := db.SaveSnapshot(s); err != nil {
-			log.Println("SaveSnapshot error:", err)
+			log.Println("SaveSnapshot (twitch) error:", err)
 		}
 	}
+
+	// --- YOUTUBE ---
+	ytStreams, err := scraper.ScrapeYoutubeLivestreams()
+	if err != nil {
+		log.Println("ScrapeYoutubeLivestreams error:", err)
+	} else {
+		for _, s := range ytStreams {
+			if err := db.SaveStream(s, "youtube"); err != nil {
+				log.Println("SaveStream (youtube) error:", err)
+			}
+			if err := db.SaveSnapshot(s); err != nil {
+				log.Println("SaveSnapshot (youtube) error:", err)
+			}
+		}
+	}
+
+	log.Printf("Collected %d Twitch streams and %d YouTube streams\n", len(twitchStreams), len(ytStreams))
+
 	return nil
 }
 
