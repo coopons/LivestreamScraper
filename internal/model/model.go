@@ -14,3 +14,17 @@ type Stream struct {
 	ThumbnailURL 	string `json:"thumbnail_url"`
 	IsMature 		bool   `json:"is_mature"`
 }
+
+// Data from yt-dlp --dump-json of live channels
+type YtStream struct {
+	ID           string   `json:"id"`
+	Title        string   `json:"title"`
+	UserName     string   `json:"uploader"`
+	UserID     	 string	  `json:"channel_id"`
+	ViewCount    int      `json:"view_count"`
+	LiveStatus   bool     `json:"is_live"`
+	Language     string   `json:"language"`
+	Thumbnail    string   `json:"thumbnail"`
+	StartTime    int64    `json:"start_time"`
+	Categories	 []string `json:"categories"`
+}
