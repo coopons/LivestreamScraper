@@ -24,7 +24,7 @@ func main() {
 	mux.HandleFunc("/api/control", api.ControlHandler)
 	mux.HandleFunc("/api/next-run", api.NextRunHandler)
 
-	api.StartCollector(clientID, clientSecret, 5*time.Minute)
+	api.StartCollector(clientID, clientSecret, 10*time.Minute)
 	
 	log.Println("Server running on http://localhost:8080")
 	err := http.ListenAndServe(":8080", mux)

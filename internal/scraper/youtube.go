@@ -9,6 +9,16 @@ import (
 	"github.com/coopons/livestream_scraper/internal/model"
 )
 
+type YoutubeScraper struct {}
+
+func (y *YoutubeScraper) GetLiveStreams(limit int) ([]model.Stream, error) {
+	return ScrapeYoutubeLivestreams()
+}
+
+func (y *YoutubeScraper) Platform() string {
+	return "youtube"
+}
+
 func ScrapeYoutubeLivestreams() ([]model.Stream, error) {
 	cmd := exec.Command("yt-dlp", "--dump-json", "https://www.youtube.com/results?search_query=live&sp=EgJAAQ%253D%253D")
 	
