@@ -13,7 +13,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	clientID := os.Getenv("TWITCH_CLIENT_ID")
 	clientSecret := os.Getenv("TWITCH_CLIENT_SECRET")
 
-	token, err := scraper.GetAppAccessToken(clientID, clientSecret)
+	token, err := scraper.GetCachedToken(clientID, clientSecret)
 	if err != nil {
 		http.Error(w, "Failed to authenticate", http.StatusInternalServerError)
 		return

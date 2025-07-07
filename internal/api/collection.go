@@ -45,6 +45,8 @@ func StartCollector(clientID, clientSecret string, interval time.Duration) {
 		&scraper.YoutubeScraper{},
 	}
 
+	// Attempt collection at program start
+	runCollection(collectors)
 	go func() {
 		for {
 			select {
@@ -78,6 +80,7 @@ func runCollection(collectors []scraper.StreamCollector) error {
 	type result struct {
 		streams  []model.Stream
 		platform string
+		duration time.Duration
 		err		 error
 	}
 
@@ -85,15 +88,23 @@ func runCollection(collectors []scraper.StreamCollector) error {
 
 	for _, collector := range collectors {
 		go func(c scraper.StreamCollector) {
+			start := time.Now()
 			streams, err := c.GetLiveStreams(200)
-			resultsCh <- result{streams: streams, platform: c.Platform(), err: err}
+			duration := time.Since(start)
+			
+			resultsCh <- result{
+				streams: streams,
+				platform: c.Platform(),
+				duration: duration,
+				err: err,
+			}
 		}(collector)
 	}
 
 	for i := 0; i < len(collectors); i++ {
 		res := <-resultsCh
 		if res.err != nil {
-			log.Printf("Error collected %s streams: %v\n", res.platform, res.err)
+			log.Printf("Error collecting %s streams: %v\n", res.platform, res.err)
 			continue
 		}
 		for _, s := range res.streams {
@@ -104,7 +115,7 @@ func runCollection(collectors []scraper.StreamCollector) error {
 				log.Printf("SaveSnapshot (%s) error: %v\n", res.platform, err)
 			}
 		}
-		log.Printf("Collected %d %s streams\n", len(res.streams), res.platform)
+		log.Printf("Collected %d %s streams in %s\n", len(res.streams), res.platform, res.duration)
 	}
 
 	// // --- TWITCH ---

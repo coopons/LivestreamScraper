@@ -3,33 +3,36 @@ package scraper
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
+	"sync"
 	"time"
 
 	"golang.org/x/oauth2"
 )
 
 var ( 
-	twitchOAuthConfig  	*oauth2.Config
-	token 				*oauth2.Token
+	token 			*oauth2.Token
+	tokenMutex		sync.Mutex
 )
 
-func InitTwitchOAuth(clientID, clientSecret, redirectURL string) {
-	twitchOAuthConfig = &oauth2.Config{
-		ClientID:     clientID,
-		ClientSecret: clientSecret,
-		Endpoint: oauth2.Endpoint{
-			AuthURL:  "https://id.twitch.tv/oauth2/authorize",
-			TokenURL: "https://id.twitch.tv/oauth2/token",
-		},
-		RedirectURL: "http://localhost:",
-		Scopes: 	 []string{"user:read:email", "user:read:follows"},
+func GetCachedToken(clientID, clientSecret string) (string, error) {
+	tokenMutex.Lock()
+	defer tokenMutex.Unlock()
+
+	if token != nil && token.Valid() {
+		return token.AccessToken, nil
 	}
+	return fetchNewToken(clientID, clientSecret)
 }
 
-func GetAppAccessToken(clientID, clientSecret string) (string, error) {
-	url := fmt.Sprintf("https://id.twitch.tv/oauth2/token?client_id=%s&client_secret=%s&grant_type=client_credentials", clientID, clientSecret)
-	resp, err := http.Post(url, "application/json", nil)
+func fetchNewToken(clientID, clientSecret string) (string, error) {
+	resp, err := http.PostForm("https://id.twitch.tv/oauth2/token", url.Values{
+		"client_id":     {clientID},
+		"client_secret": {clientSecret},
+		"grant_type":    {"client_credentials"},
+	})
 	if err != nil {
 		return "", err
 	}
@@ -41,6 +44,11 @@ func GetAppAccessToken(clientID, clientSecret string) (string, error) {
 		TokenType   string `json:"token_type"`
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return "", fmt.Errorf("twitch token error (%d): %s", resp.StatusCode, string(body))
+	}
+
 	var tr tokenResponse
 	if err := json.NewDecoder(resp.Body).Decode(&tr); err != nil {
 		return "", err
@@ -48,7 +56,8 @@ func GetAppAccessToken(clientID, clientSecret string) (string, error) {
 
 	token = &oauth2.Token{
 		AccessToken: tr.AccessToken,
-		Expiry:    time.Now().Add(time.Duration(tr.ExpiresIn) * time.Second),
+		Expiry:      time.Now().Add(time.Duration(tr.ExpiresIn) * time.Second),
 	}
+
 	return tr.AccessToken, nil
 }

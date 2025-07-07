@@ -19,18 +19,14 @@ type GetStreamsResponse struct {
 type TwitchScraper struct {
 	ClientID	 string
 	ClientSecret string
-	Token		 string
 }
 
 func (t *TwitchScraper) GetLiveStreams(limit int) ([]model.Stream, error) {
-	if t.ClientSecret == "" {
-		token, err := GetAppAccessToken(t.ClientID, t.ClientSecret)
-		if err != nil {
-			return nil, err
-		}
-		t.Token = token
+	token, err := GetCachedToken(t.ClientID, t.ClientSecret)
+	if err != nil {
+		return nil, err
 	}
-	return GetAllLiveStreams(t.ClientID, t.Token, limit) // Set to top 200 streams for now
+	return GetAllLiveStreams(t.ClientID, token, limit) // Set to top 200 streams for now
 }
 
 func (t *TwitchScraper) Platform() string {
