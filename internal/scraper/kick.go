@@ -29,7 +29,7 @@ func (k *KickScraper) Platform() string {
 
 // Fetches the specified number of kick streams sorted by viewer count 
 func getKickStreams(accessToken string, max int) ([]model.Stream, error) {
-	url := fmt.Sprintf("https://api.kick.com/public/livestreams?sort=viewer_count&limit=%d", max)
+	url := fmt.Sprintf("https://api.kick.com/api/v1/livestreams?sort=viewer_count&limit=%d", max)
 	
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
