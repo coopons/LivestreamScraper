@@ -1,9 +1,9 @@
 package scraper
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os/exec"
 
 	"github.com/coopons/livestream_scraper/internal/model"
@@ -32,26 +32,21 @@ func ScrapeYoutubeLivestreams() ([]model.Stream, error) {
 	}
 
 	var allStreams []model.Stream
-	scanner := bufio.NewScanner(stdout)
+	decoder := json.NewDecoder(stdout)
 
-	for scanner.Scan() {
-		line := scanner.Bytes()
-
+	for decoder.More() {
 		var ytStream model.YtStream
-		if err := json.Unmarshal(line, &ytStream); err != nil {
+		if err := decoder.Decode(&ytStream); err != nil {
 			fmt.Println("Error decoding youtube Lives JSON:", err)
 			continue
 		}
 
 		if !ytStream.LiveStatus {
-			continue // Skip non-live
+			log.Printf("Skipping non-live video: %s (%s)\n", ytStream.Title, ytStream.ID)
+			continue
 		}
 
 		allStreams = append(allStreams, ytStream.ToModelStream())
-	}
-
-	if err := scanner.Err(); err != nil {
-		return nil, fmt.Errorf("error reading yt-dlp output: %w", err)
 	}
 
 	if err := cmd.Wait(); err != nil {
