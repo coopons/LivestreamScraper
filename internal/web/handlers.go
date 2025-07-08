@@ -11,6 +11,7 @@ import (
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	streams, err := api.GetTopRecentStreams(50) // Fetch the top 50 most popular streams
 	if err != nil {
+		log.Printf("Error fetching top recent streams: %v\n", err)
 		http.Error(w, "Failed to load top recent streams", http.StatusInternalServerError)	
 		return
 	}	

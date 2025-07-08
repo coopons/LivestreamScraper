@@ -23,11 +23,10 @@
 
     {{if .}}
         {{range .}}
-        <button class="stream"
+        <button class="stream platform-{{.Platform}}"
             data-stream-id="{{.ID}}"
             data-streamer="{{.UserName}}">
             <h2>{{.UserName}}</h2>
-            <p class="platform"><strong>Platform:</strong> {{.Platform}}</p>
             <p class="gameName"><strong>Game:</strong> {{.GameName}}</p>
             <p class="language"><strong>Language:</strong> {{.Language}}</p>
             <p class="streamTitle">{{.Title}}</p>

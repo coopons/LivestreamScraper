@@ -15,11 +15,24 @@ button.stream {
     width: 350px;
     text-align: left;
 }
-button.stream:hover {
-  background-color: #e0e0e0;      /* darker on hover */
+button.stream.platform-twitch {
+  background-color: #e4d6fb;      /* Light purple */
 }
-button.stream:active {
-  background-color: #d0d0d0;      /* even darker on click */
+button.stream.platform-kick {
+  background-color: #dbf5db;      /* Light green */
+}
+button.stream.platform-youtube {
+  background-color: #f9d6d6;      /* Light red */
+}
+
+button.stream.platform-twitch:hover {
+    background-color: #c5a6fb;
+}
+button.stream.platform-kick:hover {
+    background-color: #b8e4b8;
+}
+button.stream.platform-youtube:hover {
+    background-color: #f1baba;
 }
 
 .streamTitle {
