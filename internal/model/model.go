@@ -13,6 +13,7 @@ type Stream struct {
 	StartedAt 		string `json:"started_at"`
 	ThumbnailURL 	string `json:"thumbnail_url"`
 	IsMature 		bool   `json:"is_mature"`
+	Platform 		string `json:"platform"` // e.g., "twitch", "youtube", "kick"
 }
 
 // Data from yt-dlp --dump-json of live channels

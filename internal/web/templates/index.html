@@ -16,30 +16,33 @@
             <button onclick="control('stop')">⏹ Stop</button>
         </div>
     </div>
-    <div id="dbInfo">
-        <p id="numLoggedStreams">Streams Logged: </p>
-    </div>
     
     <h1>Top Live Streams</h1>
+    <p>Click on a stream to view detailed stats.</p>
+    <p>Click on the "Toggle Timeline Mode" button to switch between timeline and category mode.</p>
+    
     {{range .}}
     <button class="stream"
     data-stream-id="{{.ID}}"
     data-streamer="{{.UserName}}">
         <h2>{{.UserName}}</h2>
+        <p class="platform">{{.Platform}}</p>
+        <p class="gameName">{{.GameName}}</p>
+        <p class="language">{{.Language}}</p>
         <p class="streamTitle">{{.Title}}</p>
         <p><strong>Viewers:</strong> {{.ViewerCount}}</p>
         <img src="{{.ThumbnailURL}}" alt="Thumbnail" width="320">
     </button>
-{{end}}
+    {{end}}
 
-<div id="streamModal" class="modal hidden">
-    <div class="modal-content">
-        <span id="closeModal">&times;</span>
-        <h2 id="modalTitle"></h2>
-        <button id="toggleDate">Toggle Timeline Mode</button>
-        <canvas id="modalChart" width="800" height="400"></canvas>
+    <div id="streamModal" class="modal hidden">
+        <div class="modal-content">
+            <span id="closeModal">&times;</span>
+            <h2 id="modalTitle"></h2>
+            <button id="toggleDate">Toggle Timeline Mode</button>
+            <canvas id="modalChart" width="800" height="400"></canvas>
+        </div>
     </div>
-</div>
 <script src="/static/script.js"></script>
 </body>
 </html>
