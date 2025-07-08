@@ -118,29 +118,67 @@ func SnapshotDataHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetTopRecentStreams(limit int) ([]model.Stream, error) {
-	rows, err := db.Pool.Query(context.Background(), `
-		SELECT s.platform, s.stream_id, s.streamer_name, s.title, s.game, s.language, s.thumbnail_url, s.is_mature, s.started_at,
-			   ss.viewer_count
-		FROM streams s
-		JOIN LATERAL (
-			SELECT viewer_count
-			FROM stream_snapshots
-			WHERE stream_id = s.stream_id
-			ORDER BY timestamp DESC
-			LIMIT 1
-		) ss ON true
-		ORDER BY ss.viewer_count DESC
-		LIMIT $1`, limit)
-		
+	rows, err := db.Pool.Query(context.Background(),
+		`SELECT *
+		FROM (
+			SELECT DISTINCT ON (streamer_name)
+				platform,
+				stream_id,
+				streamer_name,
+				title,
+				game,
+				language,
+				thumbnail_url,
+				timestamp,
+				viewer_count
+			FROM (
+				SELECT DISTINCT ON (s.stream_id)
+					s.platform,
+					s.stream_id,
+					s.streamer_name,
+					s.title,
+					s.game,
+					s.language,
+					s.thumbnail_url,
+					ss.timestamp,
+					ss.viewer_count
+				FROM
+					streams s
+				JOIN
+					stream_snapshots ss ON s.stream_id = ss.stream_id
+				WHERE
+					ss.timestamp > NOW() - INTERVAL '10 minutes'
+				ORDER BY
+					s.stream_id,
+					ss.timestamp DESC
+			) AS latest_streams
+			ORDER BY
+				streamer_name,
+				timestamp DESC
+		) AS latest_per_streamer
+		ORDER BY
+			viewer_count DESC
+		LIMIT $1;`, limit)
+
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
 	var streams []model.Stream
+	var timestamp time.Time
 	for rows.Next() {
 		var s model.Stream
-		err := rows.Scan(&s.Platform, &s.ID, &s.UserName, &s.Title, &s.GameName, &s.Language, &s.ThumbnailURL, &s.IsMature, &s.StartedAt, &s.ViewerCount)
+		err := rows.Scan(
+				&s.Platform,
+				&s.ID,
+				&s.UserName,
+				&s.Title,
+				&s.GameName,
+				&s.Language,
+				&s.ThumbnailURL,
+				&timestamp,
+				&s.ViewerCount)
 		if err != nil {
 			return nil, err
 		}
