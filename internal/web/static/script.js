@@ -1,5 +1,6 @@
 let chartInstance = null;
 let chartMode = "time"; 
+let lastSeenRun = null;
 
 // Dataset colors for each stream
 const colors = [

@@ -20,19 +20,23 @@
     <h1>Top Live Streams</h1>
     <p>Click on a stream to view detailed stats.</p>
     <p>Click on the "Toggle Timeline Mode" button to switch between timeline and category mode.</p>
-    
-    {{range .}}
-    <button class="stream"
-    data-stream-id="{{.ID}}"
-    data-streamer="{{.UserName}}">
-        <h2>{{.UserName}}</h2>
-        <p class="platform">{{.Platform}}</p>
-        <p class="gameName">{{.GameName}}</p>
-        <p class="language">{{.Language}}</p>
-        <p class="streamTitle">{{.Title}}</p>
-        <p><strong>Viewers:</strong> {{.ViewerCount}}</p>
-        <img src="{{.ThumbnailURL}}" alt="Thumbnail" width="320">
-    </button>
+
+    {{if .}}
+        {{range .}}
+        <button class="stream"
+            data-stream-id="{{.ID}}"
+            data-streamer="{{.UserName}}">
+            <h2>{{.UserName}}</h2>
+            <p class="platform"><strong>Platform:</strong> {{.Platform}}</p>
+            <p class="gameName"><strong>Game:</strong> {{.GameName}}</p>
+            <p class="language"><strong>Language:</strong> {{.Language}}</p>
+            <p class="streamTitle">{{.Title}}</p>
+            <p><strong>Viewers:</strong> {{.ViewerCount}}</p>
+            <img src="{{.ThumbnailURL}}" alt="Thumbnail" width="320">
+        </button>
+        {{end}}
+    {{else}}
+        <p>No stream data available.</p>
     {{end}}
 
     <div id="streamModal" class="modal hidden">
