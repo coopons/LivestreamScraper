@@ -22,7 +22,7 @@ type YtStream struct {
 	Title        string   `json:"title"`
 	UserName     string   `json:"uploader"`
 	UserID     	 string	  `json:"channel_id"`
-	ViewCount    int      `json:"view_count"`
+	ViewCount    int      `json:"concurrent_view_count"`
 	LiveStatus   bool     `json:"is_live"`
 	Language     string   `json:"language"`
 	Thumbnail    string   `json:"thumbnail"`
