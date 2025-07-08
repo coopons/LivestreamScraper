@@ -19,7 +19,7 @@ var (
 	collectorRunning bool
 )
 
-func StartCollector(clientID, clientSecret string, interval time.Duration) {
+func StartCollector(twitchClientID, twitchClientSecret, kickClientID, kickClientSecret string, interval time.Duration) {
 	if collectorRunning {
 		log.Println("Collector is already running.")
 		return
@@ -41,9 +41,9 @@ func StartCollector(clientID, clientSecret string, interval time.Duration) {
 	collectorRunning = true
 
 	collectors := []scraper.StreamCollector{
-		&scraper.TwitchScraper{ClientID: clientID, ClientSecret: clientSecret},
+		&scraper.TwitchScraper{ClientID: twitchClientID, ClientSecret: twitchClientSecret},
 		&scraper.YoutubeScraper{},
-		&scraper.KickScraper{ClientID: clientID, ClientSecret: clientSecret},
+		&scraper.KickScraper{ClientID: kickClientID, ClientSecret: kickClientSecret},
 	}
 
 	// Attempt collection at program start
@@ -137,9 +137,11 @@ func ControlHandler(w http.ResponseWriter, r *http.Request) {
 	case "stop":
 		StopCollector()
 	case "start":
-		clientID := os.Getenv("TWITCH_CLIENT_ID")
-		clientSecret := os.Getenv("TWITCH_CLIENT_SECRET")
-		StartCollector(clientID, clientSecret, 10*time.Minute)
+		twitchClientID := os.Getenv("TWITCH_CLIENT_ID")
+		twitchClientSecret := os.Getenv("TWITCH_CLIENT_SECRET")
+		kickClientID := os.Getenv("KICK_CLIENT_ID")
+		kickClientSecret := os.Getenv("KICK_CLIENT_SECRET")
+		StartCollector(twitchClientID, twitchClientSecret, kickClientID, kickClientSecret, 10*time.Minute)
 	default: 
 		log.Println("Unknown action:", r.URL.Query().Get("action"))
 	}
