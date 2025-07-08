@@ -47,7 +47,13 @@ func StartCollector(twitchClientID, twitchClientSecret, kickClientID, kickClient
 	}
 
 	// Attempt collection at program start
-	runCollection(collectors)
+	go func() {
+		if err := runCollection(collectors); err != nil {
+			log.Println("Initial collection error:", err)
+		} 
+	}()
+
+	// Start the ticker to run collection periodically
 	go func() {
 		for {
 			select {
@@ -118,6 +124,8 @@ func runCollection(collectors []scraper.StreamCollector) error {
 		}
 		log.Printf("Collected %d %s streams in %s\n", len(res.streams), res.platform, res.duration)
 	}
+
+	lastRunTime = time.Now()
 
 	return nil
 }
