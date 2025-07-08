@@ -10,6 +10,7 @@ const colors = [
     'rgba(153, 102, 255, 1)'
 ];
 
+// Plugin to display stream stats below the chart
 const StreamStatsPlugin = {
   id: 'streamStats',
   afterDraw(chart, args, pluginOptions) {
@@ -32,6 +33,7 @@ const StreamStatsPlugin = {
   }
 };
 
+// Loading modals with with viewer count charts
 document.querySelectorAll(".stream").forEach(btn => {
     btn.addEventListener("click", () => {
         const streamId = btn.getAttribute("data-stream-id")
@@ -182,7 +184,7 @@ document.querySelectorAll(".stream").forEach(btn => {
     });
 });
 
-// Modal closing
+// Modal control
 const modal = document.getElementById("streamModal");
 const closeModal = document.getElementById("closeModal");
 
@@ -200,6 +202,8 @@ if (closeModal && modal) {
     modalOpen = false;
 }
 
+// Toggle between time and category mode
+// This will also update the chart with the last visible streams
 const toggleButton = document.getElementById("toggleDate")
 if (toggleButton) {
     toggleButton.addEventListener("click", () => {
@@ -222,10 +226,14 @@ if (toggleButton) {
     });
 }
 
+// Control collector actions
+// This will send a request to the API to start/stop the collector
 function control(action) {
     fetch(`/api/control?action=${action}`)
 }
 
+// Update countdown timer for next run
+// This will fetch the next run time from the API and update the countdown display
 function updateCountdown() {
     fetch(`/api/next-run`)
     .then(res => res.json())
