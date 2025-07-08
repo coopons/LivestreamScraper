@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -23,5 +24,21 @@ func (yt YtStream) ToModelStream() Stream {
 		StartedAt:    startedAt,
 		ThumbnailURL: yt.Thumbnail,
 		IsMature:     false, // YouTube doesn't expose this
+	}
+}
+
+func (k KickStream) ToModelStream() Stream {
+	return Stream{
+		ID:           fmt.Sprintf("%d", k.ChannelID),
+		UserID:       fmt.Sprintf("%d", k.BroadcasterUserID),
+		UserName:     k.Slug,
+		Title:        k.StreamTitle,
+		GameID:       fmt.Sprintf("%d", k.Category.ID),
+		GameName:     k.Category.Name,
+		Language:     k.Language,
+		ViewerCount:  k.ViewerCount,
+		StartedAt:    k.StartedAt, // Already in RFC3339 format
+		ThumbnailURL: k.Thumbnail,
+		IsMature:     k.HasMatureContent,
 	}
 }

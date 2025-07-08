@@ -3,7 +3,6 @@ package scraper
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os/exec"
 
 	"github.com/coopons/livestream_scraper/internal/model"
@@ -41,8 +40,9 @@ func ScrapeYoutubeLivestreams() ([]model.Stream, error) {
 			continue
 		}
 
+		// Skip if the stream is not live
 		if !ytStream.LiveStatus {
-			log.Printf("Skipping non-live video: %s (%s)\n", ytStream.Title, ytStream.ID)
+			// log.Printf("Skipping non-live video: %s (%s)\n", ytStream.Title, ytStream.ID)
 			continue
 		}
 

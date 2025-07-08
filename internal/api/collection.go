@@ -43,6 +43,7 @@ func StartCollector(clientID, clientSecret string, interval time.Duration) {
 	collectors := []scraper.StreamCollector{
 		&scraper.TwitchScraper{ClientID: clientID, ClientSecret: clientSecret},
 		&scraper.YoutubeScraper{},
+		&scraper.KickScraper{ClientID: clientID, ClientSecret: clientSecret},
 	}
 
 	// Attempt collection at program start
@@ -117,47 +118,6 @@ func runCollection(collectors []scraper.StreamCollector) error {
 		}
 		log.Printf("Collected %d %s streams in %s\n", len(res.streams), res.platform, res.duration)
 	}
-
-	// // --- TWITCH ---
-	// accessToken, err := GetAppAccessToken(clientID, clientSecret)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// twitchScraper := scraper.TwitchScraper{
-	// 	ClientID: 	 clientID,
-	// 	ClientSecret: accessToken,
-	// }
-
-	// streams, err := twitchScraper.GetTwitchStreams(200) // Only get top 200 streams to start out
-	// if err != nil {
-	// 	return err
-	// }
-
-	// for _, s := range streams {
-	// 	if err := db.SaveStream(s, "twitch"); err != nil {
-	// 		log.Println("SaveStream (twitch) error:", err)
-	// 	}
-	// 	if err := db.SaveSnapshot(s); err != nil {
-	// 		log.Println("SaveSnapshot (twitch) error:", err)
-	// 	}
-	// }
-
-	// // --- YOUTUBE ---
-	// ytStreams, err := scraper.ScrapeYoutubeLivestreams()
-	// if err != nil {
-	// 	log.Println("ScrapeYoutubeLivestreams error:", err)
-	// } else {
-	// 	for _, s := range ytStreams {
-	// 		if err := db.SaveStream(s, "youtube"); err != nil {
-	// 			log.Println("SaveStream (youtube) error:", err)
-	// 		}
-	// 		if err := db.SaveSnapshot(s); err != nil {
-	// 			log.Println("SaveSnapshot (youtube) error:", err)
-	// 		}
-	// 	}
-	// }
-	// log.Printf("Collected %d Twitch streams and %d YouTube streams\n", len(streams), len(ytStreams))
 
 	return nil
 }

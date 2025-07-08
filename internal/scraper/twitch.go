@@ -22,11 +22,11 @@ type TwitchScraper struct {
 }
 
 func (t *TwitchScraper) GetLiveStreams(limit int) ([]model.Stream, error) {
-	token, err := GetCachedToken(t.ClientID, t.ClientSecret)
+	token, err := GetTwitchCachedToken(t.ClientID, t.ClientSecret)
 	if err != nil {
 		return nil, err
 	}
-	return GetAllLiveStreams(t.ClientID, token, limit) // Set to top 200 streams for now
+	return GetTwitchStreams(t.ClientID, token, limit) // Set to top 200 streams for now
 }
 
 func (t *TwitchScraper) Platform() string {
@@ -34,7 +34,7 @@ func (t *TwitchScraper) Platform() string {
 }
 
 // Recursively fetches the top twitch streams until max is reached
-func GetAllLiveStreams(clientID, accessToken string, max int) ([]model.Stream, error) {
+func GetTwitchStreams(clientID, accessToken string, max int) ([]model.Stream, error) {
 	var allStreams []model.Stream
 	cursor := ""
 	pageSize := 100

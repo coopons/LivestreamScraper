@@ -28,3 +28,22 @@ type YtStream struct {
 	StartTime    int64    `json:"start_time"`
 	Categories	 []string `json:"categories"`
 }
+
+// Data from the Kick API
+type KickStream struct {
+	BroadcasterUserID int `json:"broadcaster_user_id"`
+	ChannelID         int `json:"channel_id"`
+	Slug              string `json:"slug"`
+	StreamTitle       string `json:"stream_title"`
+	Language          string `json:"language"`
+	HasMatureContent  bool   `json:"has_mature_content"`
+	ViewerCount       int    `json:"viewer_count"`
+	Thumbnail         string `json:"thumbnail"`
+	StartedAt         string `json:"started_at"` // ISO8601 string; you can also use time.Time with parsing
+
+	Category struct {
+		ID        int    `json:"id"`
+		Name      string `json:"name"`
+		Thumbnail string `json:"thumbnail"`
+	} `json:"category"`
+}

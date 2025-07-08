@@ -13,22 +13,22 @@ import (
 )
 
 var ( 
-	token 			*oauth2.Token
-	tokenMutex		sync.Mutex
+	kickToken 			*oauth2.Token
+	kickTokenMutex		sync.Mutex
 )
 
-func GetCachedToken(clientID, clientSecret string) (string, error) {
-	tokenMutex.Lock()
-	defer tokenMutex.Unlock()
+func GetKickCachedToken(clientID, clientSecret string) (string, error) {
+	kickTokenMutex.Lock()
+	defer kickTokenMutex.Unlock()
 
-	if token != nil && token.Valid() {
-		return token.AccessToken, nil
+	if kickToken != nil && kickToken.Valid() {
+		return kickToken.AccessToken, nil
 	}
-	return fetchNewToken(clientID, clientSecret)
+	return fetchKickNewToken(clientID, clientSecret)
 }
 
-func fetchNewToken(clientID, clientSecret string) (string, error) {
-	resp, err := http.PostForm("https://id.twitch.tv/oauth2/token", url.Values{
+func fetchKickNewToken(clientID, clientSecret string) (string, error) {
+	resp, err := http.PostForm("https://id.kick.com/oauth/token", url.Values{
 		"client_id":     {clientID},
 		"client_secret": {clientSecret},
 		"grant_type":    {"client_credentials"},
@@ -46,7 +46,7 @@ func fetchNewToken(clientID, clientSecret string) (string, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("twitch token error (%d): %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("kick token error (%d): %s", resp.StatusCode, string(body))
 	}
 
 	var tr tokenResponse
@@ -54,10 +54,10 @@ func fetchNewToken(clientID, clientSecret string) (string, error) {
 		return "", err
 	}
 
-	token = &oauth2.Token{
+	kickToken = &oauth2.Token{
 		AccessToken: tr.AccessToken,
 		Expiry:      time.Now().Add(time.Duration(tr.ExpiresIn) * time.Second),
 	}
 
-	return tr.AccessToken, nil
+	return kickToken.AccessToken, nil
 }
