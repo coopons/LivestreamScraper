@@ -1,6 +1,7 @@
 package scraper
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os/exec"
@@ -19,15 +20,23 @@ func (y *YoutubeScraper) Platform() string {
 }
 
 func ScrapeYoutubeLivestreams() ([]model.Stream, error) {
-	cmd := exec.Command("yt-dlp", "--dump-json", "https://www.youtube.com/results?search_query=live&sp=EgJAAQ%253D%253D")
+	cmd := exec.Command("yt-dlp",
+		"--dump-json",
+		"--cookies", "cookies.txt",
+		"--sleep-interval", "2",
+		"--max-sleep-interval", "5",
+		"https://www.youtube.com/results?search_query=live&sp=EgJAAQ%253D%253D")
 	
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get stdout pipe: %w", err)
 	}
 
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+
 	if err := cmd.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start yt-dlp command: %w", err)
+		return nil, fmt.Errorf("failed to start yt-dlp command: %w | stderr: %s", err, stderr.String())
 	}
 
 	var allStreams []model.Stream
@@ -50,7 +59,7 @@ func ScrapeYoutubeLivestreams() ([]model.Stream, error) {
 	}
 
 	if err := cmd.Wait(); err != nil {
-		return nil, fmt.Errorf("yt-dlp command failed: %w", err)
+		return nil, fmt.Errorf("yt-dlp command failed: %w | stderr: %s", err, stderr.String())
 	}
 	
 	return allStreams, nil
