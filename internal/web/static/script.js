@@ -57,15 +57,42 @@ document.querySelectorAll(".stream").forEach(btn => {
                 const visibleStreams = window.lastVisibleStreams;
 
                 const datasets = data.map((streamData, idx) => {
-                    const points = streamData.snapshots.map(p =>
-                        chartMode === "time"
-                        ? { x: new Date(p.timestamp), y: p.viewer_count }
-                        : {
-                            x: new Date(p.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                            y: p.viewer_count
+
+                    // Create points based on chart mode
+                    // If category mode, normalize timestamps to Jan 1, 1970
+                    // Inserts null points so streams that wrap past midnight have gaps
+                    const points = [];
+                    if (chartMode === "category") {
+                        const snapshots = streamData.snapshots;
+                        for (let i = 0; i < snapshots.length; i++) {
+                            const p = snapshots[i];
+                            let ts = new Date(p.timestamp);
+
+                            // Normalize to Jan 1, 1970
+                            ts.setFullYear(1970, 0, 1);
+
+                            points.push({ x: ts, y: p.viewer_count });
+
+                            if (i < snapshots.length - 1) {
+                                let nextTs = new Date(snapshots[i + 1].timestamp);
+                                nextTs.setFullYear(1970, 0, 1);
+
+                                // Insert gap if next point wraps past midnight
+                                if (nextTs < ts) {
+                                    points.push({ x: new Date(ts.getTime() + 1), y: null });
+                                }
+                            }
                         }
-                    );
-                    
+                    } else {
+                        // Time mode (regular full datetime)
+                        for (const p of streamData.snapshots) {
+                            points.push({
+                                x: new Date(p.timestamp),
+                                y: p.viewer_count
+                            });
+                        }
+                    }
+                                        
                     const color = colors[idx % colors.length];
                     const avgViewers = Math.round(points.reduce((a, b) => a + b.y, 0) / points.length);
                     const start = new Date(streamData.snapshots[0].timestamp);
@@ -115,9 +142,9 @@ document.querySelectorAll(".stream").forEach(btn => {
                     },
                     options: {
                         responsive: true,
+                        spanGaps: false,
                         interaction: {
-                            mode: `nearest`,
-                            axis: `x`,
+                            mode: `x`,
                             intersect: false
                         },
                         plugins: {
@@ -154,23 +181,17 @@ document.querySelectorAll(".stream").forEach(btn => {
                                     text: "Viewers"
                                 }
                             },
-                            x: chartMode === "time" 
-                            ? {
+                            // Use time scale for x-axis in time mode
+                            // Use category scale for x-axis in category mode
+                            x: {
                                 type: 'time',
                                 time: {
-                                    unit: "hour",
-                                    tooltipFormat: 'MMM d, h:mm a',
+                                    unit: 'hour',
+                                    tooltipFormat: chartMode === "time" ? 'MMM d, h:mm a' : 'h:mm a',
                                 },
-                                title: {
+                                title: {   
                                     display: true,
-                                    text: "Timestamp"
-                                }
-                            }
-                            : {
-                                type: "category",
-                                title: {
-                                    display: true,
-                                    text: "Time of Day"
+                                    text: chartMode === "time" ? "Timestamp" : "Time of Day"
                                 }
                             }
                         },

@@ -9,6 +9,11 @@ import (
 )
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		log.Printf("Ignoring request to: %s\n", r.URL.Path)
+		return
+	}
+	
 	streams, err := api.GetTopRecentStreams(50) // Fetch the top 50 most popular streams
 	if err != nil {
 		log.Printf("Error fetching top recent streams: %v\n", err)
