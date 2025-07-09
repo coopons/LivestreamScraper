@@ -23,6 +23,7 @@ func ScrapeYoutubeLivestreams() ([]model.Stream, error) {
 	cmd := exec.Command("yt-dlp",
 		"--dump-json",
 		"--cookies", "cookies.txt",
+		"--sleep-requests", "2",
 		"--sleep-interval", "2",
 		"--max-sleep-interval", "5",
 		"https://www.youtube.com/results?search_query=live&sp=EgJAAQ%253D%253D")

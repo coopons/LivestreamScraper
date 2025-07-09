@@ -1,6 +1,7 @@
 package web
 
 import (
+	"encoding/json"
 	"html/template"
 	"log"
 	"net/http"
@@ -9,7 +10,7 @@ import (
 )
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/" {
+	if r.URL.Path == "/favicon.ico" {
 		log.Printf("Ignoring request to: %s\n", r.URL.Path)
 		return
 	}
@@ -26,4 +27,24 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println("Template error:", err)
 	}
+}
+
+func StatsPageHandler(w http.ResponseWriter, r *http.Request) {
+	stats, err := api.GetStatsPageData()
+	if err != nil {
+		http.Error(w, "Failed to fetch stats", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(stats)
+}
+
+func StatsHandler(w http.ResponseWriter, r *http.Request) {
+    tmpl := template.Must(template.ParseFiles("internal/web/templates/stats.html"))
+    err := tmpl.Execute(w, nil) // no dynamic data for now, just serve static HTML
+    if err != nil {
+        log.Println("Template error:", err)
+        http.Error(w, "Failed to render stats page", http.StatusInternalServerError)
+    }
 }

@@ -281,3 +281,178 @@ function updateCountdown() {
 
 setInterval(updateCountdown, 1000);
 updateCountdown();
+
+function randomColor() {
+  // Just a helper to generate a random color string, or you can hardcode colors
+  const r = Math.floor(Math.random() * 200);
+  const g = Math.floor(Math.random() * 200);
+  const b = Math.floor(Math.random() * 200);
+  return `rgb(${r},${g},${b})`;
+}
+
+function buildAvgDurationChart(data) {
+  const ctx = document.getElementById('avgDurationChart').getContext('2d');
+
+  // Example: Group by day with categories on x-axis
+  const labels = [...new Set(data.map(e => e.Day.trim()))]; // days (trim to remove spaces)
+  const categories = [...new Set(data.map(e => e.Category))];
+
+  // Prepare datasets per category
+  const datasets = categories.map(category => {
+    return {
+      label: category,
+      data: labels.map(day => {
+        const found = data.find(e => e.Day.trim() === day && e.Category === category);
+        return found ? found.AvgDuration : 0;
+      }),
+      borderColor: randomColor(), // your function or fixed colors
+      fill: false,
+    };
+  });
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: categories.map((category, i) => ({
+            label: category,
+            data: labels.map(day => {
+                const found = data.find(e => e.Day.trim() === day && e.Category === category);
+                return found ? found.AvgDuration : 0;
+            }),
+            backgroundColor: randomColor(i),
+            })),
+        },
+        options: {
+            responsive: true,
+            scales: {
+            x: { stacked: true },
+            y: { 
+                stacked: true,
+                beginAtZero: true,
+                title: { display: true, text: 'Average Duration (minutes)' }
+            }
+            }
+        }
+    });
+}
+
+function buildPopularTimesChart(data) {
+  const ctx = document.getElementById('popularTimesChart').getContext('2d');
+
+  const platforms = [...new Set(data.map(e => e.Platform))];
+  const labels = data.map(e => `${e.Hour}:00`);
+
+  const datasets = platforms.map(platform => {
+    return {
+      label: platform,
+      data: data
+        .filter(e => e.Platform === platform)
+        .map(e => e.AvgViewers),
+      fill: false,
+      borderColor: randomColor(),
+    };
+  });
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      plugins: { title: { display: true, text: 'Most Popular Times per Platform' }},
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Average Viewers' }
+        },
+        x: {
+          title: { display: true, text: 'Hour of Day' }
+        }
+      }
+    }
+  });
+}
+
+function buildTopCategoriesChart(data) {
+  const ctx = document.getElementById('topCategoriesChart').getContext('2d');
+
+  const platforms = data.map(e => e.Platform);
+  const categories = data.map(e => e.Category);
+  const viewers = data.map(e => e.AvgViewers);
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: platforms,
+      datasets: [{
+        label: 'Top Category (tooltip)',
+        data: viewers,
+        backgroundColor: platforms.map(() => randomColor()),
+        categoryPercentage: 0.6,
+        barPercentage: 0.9,
+      }]
+    },
+    options: {
+      plugins: {
+        title: { display: true, text: 'Top Category per Platform' },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => `${categories[ctx.dataIndex]}: ${ctx.parsed.y} viewers`
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Avg Viewers' }
+        }
+      }
+    }
+  });
+}
+
+function buildPeakHourComparisonChart(data) {
+  const ctx = document.getElementById('peakHourComparisonChart').getContext('2d');
+
+  const platforms = [...new Set(data.map(e => e.Platform))];
+  const labels = [...new Set(data.map(e => `${e.Hour}:00`))];
+
+  const datasets = platforms.map(platform => {
+    return {
+      label: platform,
+      data: labels.map(hour => {
+        const found = data.find(e => `${e.Hour}:00` === hour && e.Platform === platform);
+        return found ? found.AvgViewers : 0;
+      }),
+      fill: false,
+      borderColor: randomColor(),
+    };
+  });
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      plugins: { title: { display: true, text: 'Viewer Distribution at Peak Hours' }},
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: { display: true, text: 'Avg Viewers' }
+        },
+        x: {
+          title: { display: true, text: 'Hour' }
+        }
+      }
+    }
+  });
+}
+
+function displayPeakViewers(peak30, Peak30Streamer, peakAllTime, PeakAllStreamer) {
+  document.getElementById('peak30').textContent = `Peak Viewers (30d): ${peak30}, Streamer: ${Peak30Streamer}`;
+  document.getElementById('peakAllTime').textContent = `All-Time Peak Viewers: ${peakAllTime}, Streamer: ${PeakAllStreamer}`;
+}

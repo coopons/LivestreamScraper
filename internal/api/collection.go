@@ -42,7 +42,7 @@ func StartCollector(twitchClientID, twitchClientSecret, kickClientID, kickClient
 
 	collectors := []scraper.StreamCollector{
 		&scraper.TwitchScraper{ClientID: twitchClientID, ClientSecret: twitchClientSecret},
-		&scraper.YoutubeScraper{},
+		// &scraper.YoutubeScraper{}, // removing Youtube for now 
 		&scraper.KickScraper{ClientID: kickClientID, ClientSecret: kickClientSecret},
 	}
 
@@ -96,7 +96,7 @@ func runCollection(collectors []scraper.StreamCollector) error {
 	for _, collector := range collectors {
 		go func(c scraper.StreamCollector) {
 			start := time.Now()
-			streams, err := c.GetLiveStreams(200)
+			streams, err := c.GetLiveStreams(100)
 			duration := time.Since(start)
 			
 			resultsCh <- result{

@@ -34,6 +34,10 @@ func main() {
 	mux.HandleFunc("/api/snapshots", api.SnapshotDataHandler)
 	mux.HandleFunc("/api/control", api.ControlHandler)
 	mux.HandleFunc("/api/next-run", api.NextRunHandler)
+	mux.HandleFunc("/stats", web.StatsHandler)          // serves the HTML page
+	mux.HandleFunc("/api/stats", web.StatsPageHandler)  // serves the JSON data for charts
+
+
 
 	api.StartCollector(twitchClientID, twitchClientSecret, kickClientID, kickClientSecret, 10*time.Minute)
 	

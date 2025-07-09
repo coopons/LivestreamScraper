@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Livestream Stats</title>
+  <link rel="stylesheet" href="/static/style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h1>Livestream Stats</h1>
+  <div id="peakStats">
+    <p id="peak30"></p>
+    <p id="peakAllTime"></p>
+  </div>
+
+    <canvas id="avgDurationChart" height="100"></canvas>
+    <canvas id="popularTimesChart" height="100"></canvas>
+    <canvas id="topCategoriesChart" height="100"></canvas>
+    <canvas id="peakHourComparisonChart" height="100"></canvas>
+
+
+  <script src="/static/script.js"></script>
+  <script>
+    fetch('/api/stats')
+    .then(res => res.json())
+    .then(data => {
+        buildAvgDurationChart(data.AverageDuration);
+        buildPopularTimesChart(data.PopularTimes);
+        buildTopCategoriesChart(data.TopCategories);
+        buildPeakHourComparisonChart(data.PeakHourComparison);
+        displayPeakViewers(data.Peak30, data.Peak30Streamer, data.PeakAllTime, data.PeakAllStreamer);
+    });
+  </script>
+</body>
+</html>
